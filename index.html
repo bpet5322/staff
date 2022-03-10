@@ -1,0 +1,125 @@
+<html>
+	<body>
+	<script>
+	document.body.style.padding = 0;
+	document.body.style.margin = 0;
+	var canvas = document.createElement("canvas");
+	document.body.appendChild(canvas);
+	var c = canvas.getContext("2d");
+	var w = canvas.width = 500;
+	var h = canvas.height = 200;
+	c.lineWidth = 3;
+	const segments = 4;
+	let notes = [];
+	let keys = [];
+	for(let i = 0; i<segments; i++){
+		notes[i] = [];
+		for(let j = 0; j<20; j++){
+			notes[i][j] = {
+				on: 0
+			};
+		}
+	}
+	for(let i = 0; i<105;i++){
+		keys[i] = 0;
+	}
+	
+	addEventListener("mousedown",function(e){
+		var rect=canvas.getBoundingClientRect();
+		let x = e.x - rect.left;
+		let y = e.y  - rect.top;
+		
+		if(x>0 &&y>0 && x<w && y<h){
+			let segmentX  =  Math.floor(x/w * segments);
+			
+			
+			let segmentY = Math.floor(y/h * 20);
+			
+			if(notes[segmentX][segmentY].on == 0){
+				notes[segmentX][segmentY].on = 1;
+			}else{
+				notes[segmentX][segmentY].on = 0;
+			}
+			notes[segmentX][segmentY].value = keys[53]*4 + keys[52]*8 + keys[51]*16 + keys[50]*32 + keys[54]*2 + keys[55]+keys[101]*4 + keys[100]*8 + keys[99]*16 + keys[98]*32 + keys[102]*2 + keys[103];
+			if(notes[segmentX][segmentY].value == 0){
+				notes[segmentX][segmentY].value = 4;
+			}
+			
+		}
+		
+		draw();
+		draw();
+	},false);
+	addEventListener("keydown", function(e){
+		keys[e.keyCode] = 1;
+	},false);
+	addEventListener("keyup", function(e){
+		keys[e.keyCode] = 0;
+	},false);
+	addEventListener("mousemove",function(e){
+		var rect=canvas.getBoundingClientRect();
+		let x = e.x - rect.left;
+		let y = e.y  - rect.top;
+		//c.strokeStyle = "red";
+		//c.beginPath();
+		//c.moveTo(x-10, y);
+		//c.lineTo(x+10, y);
+		//c.moveTo(x,y-10);
+		//c.lineTo(x,y+10);
+		//c.stroke();
+	},false);
+	
+	function draw(){
+		c.clearRect(0,0,w,h);
+		for(let i = 0; i<5; i++){
+			c.strokeStyle = "black";
+			c.beginPath();
+			c.moveTo(0, (i+3)/10*h);
+			c.lineTo(w, (i+3)/10*h);
+			c.stroke();
+		}
+		for(let i = 0; i< notes.length; i++){
+			for(let j = 0; j< notes[0].length; j++){
+				if(notes[i][j].on>0){
+					let mod = false;
+					let newY = j*h/20 + h/20;
+					let newX = i*w/segments + w/(2*segments);
+					//check to see if there is a need to move note over if it overlaps with another in the chord. 
+					if(notes[i][j+1].on== 1){
+						newX+= w/(4*segments);
+						notes[i][j].on = 2;
+					}else{
+						notes[i][j].on= 1;
+					}
+					if(notes[i][j-1].on == 2&&notes[i][j].on == 2){
+						notes[i][j-1].on = 1;
+					}
+					c.fillStyle = "black";
+					c.strokeStyle = "black";
+					c.beginPath();
+					c.ellipse(newX, newY, 1.5*h/20, h/20, 0, 0, Math.PI*2);
+					if(notes[i][j].on == 2){
+						newX-= w/(4*segments);
+					}
+					//draw line if its not a whole note.
+					if(notes[i][j].value != 1){
+						c.moveTo(newX+1.5*h/20, newY);
+						c.lineTo(newX+1.5*h/20, newY-(4.5*h/20));
+					}
+					
+					c.closePath();
+					
+					if(notes[i][j].value >=4){
+						c.fill();
+					}
+					c.stroke();
+				}
+			}
+		}
+	}
+	
+	draw();
+	setInterval(draw, 1000);
+	</script>
+	</body>
+</html>
